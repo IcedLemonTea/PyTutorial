@@ -1,11 +1,13 @@
 import random
 
+# Import the random module and setup variables for the program
 num = random.randint(1, 10)
 guess = ''
 guess_count = 0
 guess_limit = 5
 out_of_guesses = False
 
+# Setting the conditions for the while loop
 while guess != num and not out_of_guesses:
     if guess_count < guess_limit:
         guess = int(input('Enter your guess here: '))
@@ -19,5 +21,7 @@ while guess != num and not out_of_guesses:
     else:
         out_of_guesses = True
 
+# If the user exceeds the number of guesses or guesses the value, the while loop closes
+# This if loop checks if the number of guesses has been exceeded upon which it prints the losing statement
 if out_of_guesses:
     print('Sorry, try again')
