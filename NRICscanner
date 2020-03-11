@@ -1,0 +1,141 @@
+import pandas as pd
+import numpy as np
+
+# Set current date for file
+today = 'March10'
+
+# Set State dictionary
+State = {
+    '00': np.nan,
+    '01': 'Johor',
+    '02': 'Kedah',
+    '03': 'Kelantan',
+    '04': 'Malacca',
+    '05': 'Negeri Sembilan',
+    '06': 'Pahang',
+    '07': 'Penang',
+    '08': 'Perak',
+    '09': 'Perlis',
+    '10': 'Selangor',
+    '11': 'Terengganu',
+    '12': 'Sabah',
+    '13': 'Sarawak',
+    '14': 'Kuala Lumpur',
+    '15': 'Labuan',
+    '16': 'Putrajaya',
+    '17': np.nan,
+    '18': np.nan,
+    '19': np.nan,
+    '20': np.nan,
+    '21': 'Johor',
+    '22': 'Johor',
+    '23': 'Johor',
+    '24': 'Johor',
+    '25': 'Kedah',
+    '26': 'Kedah',
+    '27': 'Kedah',
+    '28': 'Kelantan',
+    '29': 'Kelantan',
+    '30': 'Malacca',
+    '31': 'Negeri Sembilan',
+    '32': 'Pahang',
+    '33': 'Pahang',
+    '34': 'Penang',
+    '35': 'Penang',
+    '36': 'Perak',
+    '37': 'Perak',
+    '38': 'Perak',
+    '39': 'Perak',
+    '40': 'Perlis',
+    '41': 'Selangor',
+    '42': 'Selangor',
+    '43': 'Selangor',
+    '44': 'Selangor',
+    '45': 'Terengganu',
+    '46': 'Terengganu',
+    '47': 'Sabah',
+    '48': 'Sabah',
+    '49': 'Sabah',
+    '50': 'Sarawak',
+    '51': 'Sarawak',
+    '52': 'Sarawak',
+    '53': 'Sarawak',
+    '54': 'Kuala Lumpur',
+    '55': 'Kuala Lumpur',
+    '56': 'Kuala Lumpur',
+    '57': 'Kuala Lumpur',
+    '58': 'Labuan',
+    '59': 'Negeri Sembilan',
+    '82': 'Unidentified State'
+}
+
+# Sets the display format for IC numbers correctly instead of as scientific notation
+pd.options.display.float_format = '{:.0f}'.format
+
+# Sets the display format in console
+pd.set_option('display.width', 400)
+pd.set_option('display.max_columns', 10)
+
+# Imports the file for processing and provides information about the dataframe
+df = pd.read_csv('Filename' + today + '.csv', encoding='utf-8', delimiter='\t')
+
+# Converts IC numbers to strings so leading zeroes can be added to handle post 1999 birthdays
+if df['icNumber'] is not str:
+    df['icNumber'] = df['icNumber'].astype(str)
+
+# Adding leading zeroes with zfill. 14 includes .0 at end of string
+df['icNumber'] = df['icNumber'].str.zfill(14)
+
+# Isolating birthdate part of the IC
+df['DoB'] = df['icNumber'].str[:6]
+
+# Converting string to datetime format
+df2 = pd.to_datetime(df['DoB'], errors='coerce', format='%y%m%d')
+df['DoB'] = df2
+
+# Correcting for incorrect centuries input by datetime module
+df.loc[df['DoB'] >= pd.to_datetime('1/1/2020'), 'DoB'] -= pd.DateOffset(years=100)
+
+# Determining number of erroneous birthdays
+print('Number of erroneous values: ' + str(df['DoB'].isnull().sum()))
+
+# Remove erroneous birthdays
+df = df[pd.notnull(df['DoB'])]
+print(df.shape)
+
+# Determining current age
+dob = df['DoB']
+now = pd.to_datetime('now')
+age = (now.year - dob.dt.year) - ((now.month - dob.dt.month) < 0)
+
+# Adding current age to main dataframe
+df['Age'] = age
+
+# Creating column of state codes and mapping to associated states
+SC = df['icNumber'].str[6:8]
+States = SC.map(State)
+df['State'] = States
+
+# Removing decimal point at end of IC
+df['icNumber'] = df['icNumber'].str[:12]
+
+# Dictionary of digits Odd and Even
+Gender_dict = {'0': 'Female',
+               '1': 'Male',
+               '2': 'Female',
+               '3': 'Male',
+               '4': 'Female',
+               '5': 'Male',
+               '6': 'Female',
+               '7': 'Male',
+               '8': 'Female',
+               '9': 'Male'
+               }
+
+# Separating out last digit from IC and mapping to get gender
+Gen = df['icNumber'].str[11]
+Gender = Gen.map(Gender_dict)
+df['Gender'] = Gender
+
+# Exporting the dataframe into csv
+export_csv = df.to_csv(r'C:\Users\A2336\PycharmProjects\ETReporting\ETR' + today + '.csv')
